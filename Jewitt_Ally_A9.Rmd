@@ -1,0 +1,81 @@
+---
+title: "Jewitt_Ally_A9"
+author: "Ally Jewitt"
+date: "2023-03-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+```{r}
+library(doParallel)
+library(parallel)
+library(foreach)
+```
+
+## Number of cores
+```{r}
+detectCores()
+```
+
+### There are 4 cores in my system. 
+
+## Standard for loop
+```{r}
+mean <- numeric(4000)
+
+start1 <- Sys.time()
+
+for (i in 1:4000) {
+  sample <- rnorm(100000, mean=10, sd=3)
+  mean[i] <- mean(sample)
+}
+
+finish1 <- Sys.time()
+
+time_serial <- finish1 - start1
+print(paste0("Time elapsed: ", time_serial, " seconds"))
+```
+
+## Theoretical time 
+
+Theoretically, the parallel run-time should be equivalent to the serial run-time, divided by the number of cores in my computer:
+```{r}
+SerialTime<-13.4488620758057
+Comp_Core<- 4
+
+time_theoretical<-SerialTime/Comp_Core
+print(paste0("Theoretical time: ", time_theoretical, " seconds"))
+```
+
+
+## Parallel loop 
+```{r}
+Cores <- parallel::makeCluster(detectCores()) 
+doParallel::registerDoParallel(Cores) 
+
+start2 <- Sys.time()
+
+means<- foreach(i = 1:4000, .combine = c) %dopar% {
+  numbers <- rnorm(100000, mean = 10, sd = 3)
+  mean(numbers)
+}
+
+parallel::stopCluster(Cores) 
+
+finish2 <- Sys.time()
+
+time_parallel <- finish2 - start2
+print(paste0("Time elapsed: ", time_parallel, " seconds"))
+```
+
+## Compare run times 
+The actual run time of the parallel loop is 13.7 seconds, which is faster than the serial loop, 30.4 seconds, but slower than the theoretical, 3.4 seconds. 
+
+The theoretical is shorter than the actual run-time of the parallel program because it represents the minimum amount of time that the system needs to run the loop. This is often a bit slower in actual time because of other factors such as contention for resources. 
+
+
+
